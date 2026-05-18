@@ -26,18 +26,19 @@ jobs:
 
       - name: Run MLflow Project
         run: |
-          # Mengeksekusi folder MLProject
           mlflow run MLProject/ --env-manager=local
 
       - name: Get Exact Model Path
         id: get_model_path
         run: |
-          # Perintah ini akan mencari lokasi pasti dari folder 'model' yang dihasilkan
-          # sehingga kebal terhadap masalah parent/child run di MLflow
-          MODEL_DIR=$(find mlruns -name "model" -type d | head -n 1)
+          MODEL_DIR=$(find . -path "*/artifacts/model" -type d | head -n 1)
           echo "Direktori model ditemukan di: $MODEL_DIR"
 
-          # Menyimpan path tersebut sebagai variabel environment
+          if [ -z "$MODEL_DIR" ]; then
+            echo "ERROR: Folder model tidak ditemukan! Menampilkan struktur mlruns:"
+            find . -name "mlruns" -type d
+            exit 1
+          fi
           echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
 
       - name: Upload Artifact to GitHub
@@ -48,7 +49,6 @@ jobs:
 
       - name: Build Docker Model
         run: |
-          # Menggunakan variabel path model yang sudah pasti akurat
           mlflow models build-docker -m ${{ env.MODEL_DIR }} -n ${{ secrets.DOCKER_USERNAME }}/academic-model:latest
 
       - name: Log in to Docker Hub
