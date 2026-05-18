@@ -31,14 +31,22 @@ jobs:
       - name: Get Exact Model Path
         id: get_model_path
         run: |
-          MODEL_DIR=$(find . -path "*/artifacts/model" -type d | head -n 1)
-          echo "Direktori model ditemukan di: $MODEL_DIR"
+          # Cari file 'MLmodel' yang SELALU dibuat oleh mlflow.sklearn.log_model
+          # lalu ambil folder induknya sebagai MODEL_DIR
+          MLMODEL_FILE=$(find . -name "MLmodel" -type f | head -n 1)
+          echo "File MLmodel ditemukan di: $MLMODEL_FILE"
 
-          if [ -z "$MODEL_DIR" ]; then
-            echo "ERROR: Folder model tidak ditemukan! Menampilkan struktur mlruns:"
-            find . -name "mlruns" -type d
+          if [ -z "$MLMODEL_FILE" ]; then
+            echo "ERROR: File MLmodel tidak ditemukan!"
+            echo "=== Struktur direktori saat ini ==="
+            find . -maxdepth 6 -type d | sort
             exit 1
           fi
+
+          MODEL_DIR=$(dirname "$MLMODEL_FILE")
+          echo "Direktori model: $MODEL_DIR"
+
+          # Menyimpan path tersebut sebagai variabel environment
           echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
 
       - name: Upload Artifact to GitHub
