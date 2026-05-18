@@ -29,22 +29,27 @@ jobs:
           # Mengeksekusi folder MLProject
           mlflow run MLProject/ --env-manager=local
 
-      - name: Get latest MLflow run_id
-        id: get_run_id
+      - name: Get Exact Model Path
+        id: get_model_path
         run: |
-          RUN_ID=$(ls mlruns/0 | grep -v meta.yaml | head -n 1)
-          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "Run ID yang ditemukan: $RUN_ID"
+          # Perintah ini akan mencari lokasi pasti dari folder 'model' yang dihasilkan
+          # sehingga kebal terhadap masalah parent/child run di MLflow
+          MODEL_DIR=$(find mlruns -name "model" -type d | head -n 1)
+          echo "Direktori model ditemukan di: $MODEL_DIR"
+
+          # Menyimpan path tersebut sebagai variabel environment
+          echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
 
       - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
-          path: mlruns/0/${{ env.RUN_ID }}/artifacts/model
+          path: ${{ env.MODEL_DIR }}
 
       - name: Build Docker Model
         run: |
-          mlflow models build-docker -m mlruns/0/${{ env.RUN_ID }}/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/academic-model:latest
+          # Menggunakan variabel path model yang sudah pasti akurat
+          mlflow models build-docker -m ${{ env.MODEL_DIR }} -n ${{ secrets.DOCKER_USERNAME }}/academic-model:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
