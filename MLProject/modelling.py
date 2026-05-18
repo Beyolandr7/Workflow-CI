@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
@@ -29,14 +30,13 @@ if __name__ == "__main__":
         # Evaluate and log metrics
         y_pred = model.predict(X_test)
         mae  = mean_absolute_error(y_test, y_pred)
-        rmse = mean_squared_error(y_test, y_pred, squared=False)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         r2   = r2_score(y_test, y_pred)
 
         mlflow.log_metric("mae", mae)
         mlflow.log_metric("rmse", rmse)
         mlflow.log_metric("r2", r2)
 
-        # Log model ke artifacts/model (satu-satunya log_model, tidak pakai autolog)
         mlflow.sklearn.log_model(model, "model")
 
         run_id = run.info.run_id
