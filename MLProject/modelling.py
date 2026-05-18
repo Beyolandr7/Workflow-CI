@@ -18,7 +18,10 @@ if __name__ == "__main__":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
         model.fit(X_train, y_train)
         
-        # BARIS TAMBAHAN: Memaksa MLflow menyimpan folder 'model'
         mlflow.sklearn.log_model(model, "model")
-        
-        print(f"Model berhasil dilatih dengan Run ID: {run.info.run_id}")
+
+        run_id = run.info.run_id
+        with open("run_id.txt", "w") as f:
+            f.write(run_id)
+            
+        print(f"Model berhasil dilatih dengan Run ID: {run_id}")

@@ -24,32 +24,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install mlflow pandas scikit-learn
 
-      - name: Run MLflow Project
+      - name: Run Modelling Script
         run: |
-          # Mengeksekusi folder MLProject
-          mlflow run MLProject/ --env-manager=local
+          # Mengeksekusi script secara langsung agar mlruns tersimpan di direktori utama
+          python MLProject/modelling.py
 
-      - name: Get Exact Model Path
-        id: get_model_path
+      - name: Get Exact Run ID
+        id: get_run_id
         run: |
-          # Perintah ini akan mencari lokasi pasti dari folder 'model' yang dihasilkan
-          # sehingga kebal terhadap masalah parent/child run di MLflow
-          MODEL_DIR=$(find mlruns -name "model" -type d | head -n 1)
-          echo "Direktori model ditemukan di: $MODEL_DIR"
-
-          # Menyimpan path tersebut sebagai variabel environment
-          echo "MODEL_DIR=$MODEL_DIR" >> $GITHUB_ENV
+          # Membaca Run ID dari file teks yang baru saja dibuat oleh Python
+          RUN_ID=$(cat run_id.txt)
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "Run ID berhasil diekstrak: $RUN_ID"
 
       - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
-          path: ${{ env.MODEL_DIR }}
+          # Menggunakan path yang 100% akurat
+          path: mlruns/0/${{ env.RUN_ID }}/artifacts/model
 
       - name: Build Docker Model
         run: |
-          # Menggunakan variabel path model yang sudah pasti akurat
-          mlflow models build-docker -m ${{ env.MODEL_DIR }} -n ${{ secrets.DOCKER_USERNAME }}/academic-model:latest
+          mlflow models build-docker -m mlruns/0/${{ env.RUN_ID }}/artifacts/model -n ${{ secrets.DOCKER_USERNAME }}/academic-model:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
