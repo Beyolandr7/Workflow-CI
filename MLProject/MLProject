@@ -1,0 +1,7 @@
+name: Academic_Performance_Model
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    command: "python modelling.py"

@@ -1,0 +1,11 @@
+name: env-academic-performance
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - scikit-learn
+  - pandas
+  - numpy
+  - pip
+  - pip:
+      - mlflow
