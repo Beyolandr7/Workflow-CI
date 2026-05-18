@@ -4,10 +4,12 @@ from sklearn.ensemble import RandomForestRegressor
 import mlflow
 import mlflow.sklearn
 
+import os
+
 if __name__ == "__main__":
-    # Path dataset disesuaikan dengan posisi file saat dijalankan
-    df = pd.read_csv('academic_performance_preprocessing/processed_dataset.csv')
-    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(script_dir, 'academic_performance_preprocessing', 'processed_dataset.csv')
+    df = pd.read_csv(csv_path)
     X = df.drop(columns=['final_exam_score'])
     y = df['final_exam_score']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
